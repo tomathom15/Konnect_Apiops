@@ -41,19 +41,25 @@ jobs:
       - name: Install inso
         run: brew install inso
           
-      # Get Dev Portal EU ID
-      - name: Get Dev Portal EU ID
+      # Get Dev Portal ID
+      - name: Get Dev Portal ID
         run: |
-          portalEuId=$( curl 'https://eu.api.konghq.com/konnect-api/api/portals' -H 'authorization: Bearer ${{ secrets.KONNECT_TOKEN }}' | jq -r '.data[].id' )
-          echo "PORTAL_EU_ID=$portalEuId" >> $GITHUB_ENV
+          #portalId=$( curl 'https://eu.api.konghq.com/konnect-api/api/portals' -H 'authorization: Bearer ${{ secrets.KONNECT_TOKEN }}' | jq -r '.data[].id' )
+          portalId=$( curl 'https://us.api.konghq.com/konnect-api/api/portals' -H 'authorization: Bearer ${{ secrets.KONNECT_TOKEN }}' | jq -r '.data[].id' )
+          echo "PORTAL_ID=$portalId" >> $GITHUB_ENV
         
-      # Push Dev Portal EU changes
-      - name: Dev Portal EU change
+      # Push Dev Portal changes
+      - name: Dev Portal change
         run: |
-          curl -X 'PATCH' 'https://eu.api.konghq.com/konnect-api/api/portals/${{ env.PORTAL_EU_ID }}' \
+          #curl -X 'PATCH' 'https://eu.api.konghq.com/konnect-api/api/portals/${{ env.PORTAL_EU_ID }}' \
+          #-H 'authorization: Bearer ${{ secrets.KONNECT_TOKEN }}' \
+          #-H 'content-type: application/json' \
+          #-d @./portal/spec_EU.json
+          
+          curl -X 'PATCH' 'https://us.api.konghq.com/konnect-api/api/portals/${{ env.PORTAL_ID }}' \
           -H 'authorization: Bearer ${{ secrets.KONNECT_TOKEN }}' \
           -H 'content-type: application/json' \
-          -d @./portal/spec_EU.json
+          -d @./portal/spec_US.json
 
       # API Spec linting
       - name: Validate specification
@@ -70,8 +76,8 @@ jobs:
       # Sync to Konnect
       - name: Update Kong
         run: |
-          deck ping --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://eu.api.konghq.com" && deck sync --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://eu.api.konghq.com" --konnect-runtime-group-name "Konnect_ApiOps" -s konnect.yaml > sync.outputEU.txt
-          #deck ping --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://us.api.konghq.com" && deck sync --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://us.api.konghq.com" --konnect-runtime-group-name "Konnect_ApiOps" -s konnect.yaml > sync.outputUS.txt
+          #deck ping --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://eu.api.konghq.com" && deck sync --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://eu.api.konghq.com" --konnect-runtime-group-name "Konnect_ApiOps" -s konnect.yaml > sync.outputEU.txt
+          deck ping --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://us.api.konghq.com" && deck sync --konnect-token "${{ secrets.KONNECT_TOKEN }}" --konnect-addr "https://us.api.konghq.com" --konnect-runtime-group-name "Konnect_ApiOps" -s konnect.yaml > sync.outputUS.txt
 
       # Prepare test spec             
       - name: Prepare URL 4 Test file
